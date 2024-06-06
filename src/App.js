@@ -79,12 +79,11 @@
 
 // export default App;
 
-
-
 import React, { useEffect, useState } from "react"; // Import useState hook
 import "../../tenzies/src/App.css"; // Import your CSS file (assuming path is correct)
 import Die from "../../tenzies/src/Die"; // Import Die component
 import { nanoid } from "nanoid";
+
 
 function App() {
   const [dice, setDice] = useState([]); // Initialize state with random dice values
@@ -106,20 +105,30 @@ function App() {
     setDice(allNewDice());
   }, []);
 
-  function rollDice() {
-    setDice((oldDice) => {
-      return allNewDice();
-    });
+  function rollDice(id) { // Receive the clicked die's id as an argument
+    console.log("Rolling die with id:", id);
+    // Implement your logic to roll the specific die based on its id (optional)
+  }
+
+  function holdDice(id) {
+    setDice(prevDice =>
+      prevDice.map((die) => (die.id === id ? { ...die, isHeld: !die.isHeld } : die))
+    );
   }
 
   return (
     <main>
       <div className="dice-container">
         {dice.map((die, index) => (
-          <Die value={die.value} key={die.id} /> // Pass die.value to Die component
+          <Die
+            value={die.value}
+            key={die.id}
+            isHeld={die.isHeld}
+            holdDice={() => holdDice(die.id)} // Pass holdDice function with correct argument
+          />
         ))}
       </div>
-      <button className="roll-dice" onClick={rollDice}>
+      <button className="roll-dice" onClick={() => rollDice()}>
         Roll
       </button>
     </main>
