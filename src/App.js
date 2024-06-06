@@ -78,36 +78,40 @@
 // }
 
 // export default App;
-
 import React, { useEffect, useState } from "react"; // Import useState hook
 import "../../tenzies/src/App.css"; // Import your CSS file (assuming path is correct)
 import Die from "../../tenzies/src/Die"; // Import Die component
 import { nanoid } from "nanoid";
 
-
 function App() {
   const [dice, setDice] = useState([]); // Initialize state with random dice values
+  const [tenzies, setTenzies] = useState(false); // Track Tenzies state (all dice same value and held)
 
-  function allNewDice() {
-    const newDice = [];
-    for (let i = 0; i < 10; i++) {
-      newDice.push({
-        value: Math.floor(Math.random() * 6), // Random value between 0 (inclusive) and 5 (inclusive)
-        isHeld: false, // Initially not held
-        id: nanoid(), // Generate a unique ID
-      });
-    }
-    console.log("new dice ", newDice);
-    return newDice;
-  }
-
+  // Only set initial dice on component mount (no dependency array)
   useEffect(() => {
     setDice(allNewDice());
   }, []);
 
-  function rollDice(id) { // Receive the clicked die's id as an argument
-    console.log("Rolling die with id:", id);
-    // Implement your logic to roll the specific die based on its id (optional)
+  function allNewDice() {
+    const newDice = [];
+    for (let i = 0; i < 10; i++) {
+      newDice.push(generateNewDie());
+    }
+    return newDice;
+  }
+
+  function generateNewDie() {
+    return {
+      value: Math.floor(Math.random() * 6), // Random value between 0 (inclusive) and 5 (inclusive)
+      isHeld: false, // Initially not held
+      id: nanoid(), // Generate a unique ID
+    };
+  }
+
+  function rollDice() {
+    setDice(oldDice =>
+      oldDice.map((die) => (die.isHeld ? die : generateNewDie()))
+    );
   }
 
   function holdDice(id) {
@@ -116,19 +120,27 @@ function App() {
     );
   }
 
+  // Check for Tenzies win condition after each dice update
+  useEffect(() => {
+    const allSameValue = dice.every((die) => die.value === dice[0].value);
+    const allHeld = dice.every((die) => die.isHeld);
+    setTenzies(allSameValue && allHeld);
+  }, [dice]);
+
   return (
     <main>
+      {tenzies && <h1>You Win!</h1>}
       <div className="dice-container">
         {dice.map((die, index) => (
           <Die
             value={die.value}
             key={die.id}
             isHeld={die.isHeld}
-            holdDice={() => holdDice(die.id)} // Pass holdDice function with correct argument
+            holdDice={() => holdDice(die.id)}
           />
         ))}
       </div>
-      <button className="roll-dice" onClick={() => rollDice()}>
+      <button className="roll-dice" onClick={rollDice} disabled={tenzies}>
         Roll
       </button>
     </main>
